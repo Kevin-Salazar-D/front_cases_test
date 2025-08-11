@@ -11,8 +11,19 @@ const Home = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   return (
-    <Box sx={{ px: 2, mt: 4 }}>
-      <Typography variant="h4" align="center" sx={{ fontWeight: 700, mb: 4 }}>
+    <Box
+      sx={{
+        maxWidth: 1700,
+        mx: 'auto',
+        px: 2,
+        py: 4,
+      }}
+    >
+      <Typography
+        variant="h4"
+        align="center"
+        sx={{ fontWeight: 700, mb: 4 }}
+      >
         Generador de Casos de Prueba
       </Typography>
 
@@ -20,41 +31,38 @@ const Home = () => {
         sx={{
           display: 'flex',
           flexDirection: isMobile ? 'column' : 'row',
-          gap: 3,
+          gap: 4,
           alignItems: 'flex-start',
           justifyContent: 'center',
         }}
       >
-        {/* Columna del Formulario */}
-        <Box
+        {/* Contenedor del formulario */}
+        <Paper
+          elevation={3}
           sx={{
-            flex: 1,
-            minWidth: 300,
-            width: isMobile ? '100%' : 'auto',
+            flexBasis: isMobile ? '100%' : 500,
+            p: 2,
+            borderRadius: 3,
+            bgcolor: 'background.paper',
+            height: isMobile ? '100%' : 'auto',
+            width: '100%',
+            overflowY: isMobile ? 'visible' : 'auto',
           }}
         >
-          <Paper
-            elevation={2}
-            sx={{
-              p: 3,
-              borderRadius: 3,
-              bgcolor: 'background.paper',
-              height: '100%',
-            }}
+          <Typography
+            variant="h6"
+            sx={{ mb: 2, fontWeight: 600, color: 'primary.main' }}
           >
-            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: 'primary.main' }}>
-              Configuración de Generación
-            </Typography>
-            <FormCases setCasesData={setCasesData} setFormCase={setFormCase} />
-          </Paper>
-        </Box>
+            Configuración de Generación
+          </Typography>
+          <FormCases setCasesData={setCasesData} setFormCase={setFormCase} />
+        </Paper>
 
-        {/* Columna del Resultado */}
+        {/* Contenedor de resultados */}
         <Box
           sx={{
-            flex: 2,
-            minWidth: 300,
-            width: isMobile ? '100%' : 'auto',
+            flexGrow: 1,
+            minWidth: 0,
           }}
         >
           <TestCaseDisplay casesData={casesData} formCaseData={formCase} />
