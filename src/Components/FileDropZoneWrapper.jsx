@@ -6,6 +6,8 @@ const FileDropZone = styled(Paper, {
   shouldForwardProp: (prop) => prop !== 'error',
 })(({ theme, error }) => ({
   width: '100%',
+  flex:  1,
+  borderRadius: 10,
   display: 'block',
   boxSizing: 'border-box',
   padding: theme.spacing(2),

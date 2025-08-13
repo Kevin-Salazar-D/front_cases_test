@@ -1,20 +1,21 @@
-// FormCases.jsx
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from "react";
 
-//importaciones materia ui
-import Button from '@mui/material/Button';
-import Grid from '@mui/material/Grid';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
-import Collapse from '@mui/material/Collapse';
-import Alert from '@mui/material/Alert';
-import CircularProgress from '@mui/material/CircularProgress';
-import UploadFileIcon from '@mui/icons-material/UploadFile';
-import DescriptionIcon from '@mui/icons-material/Description';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import FileDropZoneWrapper from './FileDropZoneWrapper';
-import Chip from '@mui/material/Chip';
-import axios from 'axios';
+// importaciones materia ui
+import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import Alert from "@mui/material/Alert";
+import InputAdornment from "@mui/material/InputAdornment";
+import CircularProgress from "@mui/material/CircularProgress";
+
+//iconos 
+import Icons from "../utils/icon";
+
+import FileDropZoneWrapper from "./FileDropZoneWrapper";
+import Chip from "@mui/material/Chip";
+import axios from "axios";
+import { Container } from "@mui/material";
 
 const FormCases = ({ setCasesData, setFormCase }) => {
   const [excelFile, setExcelFile] = useState(null);
@@ -29,17 +30,16 @@ const FormCases = ({ setCasesData, setFormCase }) => {
   });
 
   const [valuesForm, setValuesForm] = useState({
-    release: '',
-    name_tester: '',
-    result: '',
-    name_folder: '',
-    url: '',
-  
+    release: "",
+    name_tester: "",
+    result: "",
+    name_folder: "",
+    url: "",
   });
 
   const [loading, setLoading] = useState(false);
-  const [apiError, setApiError] = useState(null);
-  const [apiSuccess, setApiSuccess] = useState(null);
+  const [statusApi, setStatusApi] = useState(false);
+  const [messageApi, setApiMessage] = useState("");
 
   const excelInputRef = useRef();
   const wordInputRef = useRef();
@@ -59,198 +59,299 @@ const FormCases = ({ setCasesData, setFormCase }) => {
     }
   };
 
-const handleSubmit = async () => {
-  const newErrors = {
+  const handleSubmit = async () => {
+    const newErrors = {
     excelFile: !excelFile,
     wordFile: !wordFile,
-    release: valuesForm.release.trim() === '',
-    name_tester: valuesForm.name_tester.trim() === '',
+    release: valuesForm.release.trim() === "",
+    name_tester: valuesForm.name_tester.trim() === "",
+
   };
+    setErrors(newErrors);
+    if (Object.values(newErrors).some(Boolean)) return;
 
-  setErrors(newErrors);
-  if (Object.values(newErrors).some(Boolean)) return;
+    setLoading(true);
 
-  setLoading(true);
-  setApiError(null);
-  setApiSuccess(null);
+    try {
+      const formData = new FormData();
+      formData.append("excel", excelFile);
+      formData.append("word", wordFile);
+      formData.append("realises", valuesForm.release);
+      formData.append("nameTester", valuesForm.name_tester);
+      formData.append("result", valuesForm.result || "");
+      formData.append("nameFolder", valuesForm.name_folder);
 
-  try {
-    const formData = new FormData();
-    formData.append('excel', excelFile);
-    formData.append('word', wordFile);
-    formData.append('realises', valuesForm.release);
-    formData.append('nameTester', valuesForm.name_tester);
-    formData.append('result', valuesForm.result);
-    formData.append('nameFolder', valuesForm.name_folder);
+      const response = await axios.post(
+        "http://localhost:3000/test_cases/generated/generatedTest",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
+      const data = response.data;
 
-    console.log("FormData contents:");
-    for (let pair of formData.entries()) {
-      console.log(pair[0] + ':', pair[1]);
-    }
-
-    const response = await axios.post(
-      'http://localhost:3000/test_cases/generated/generatedTest',
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      if (!data.casos || !Array.isArray(data.casos)) {
+        throw new Error(data.message || "Respuesta inesperada del servidor");
       }
-    );
 
-    const data = response.data;
-
-    console.log("Respuesta del backend:", data);
-
-    if (!data.casos || !Array.isArray(data.casos)) {
-      throw new Error(data.message || 'Respuesta inesperada del servidor');
-    }
-
-    setCasesData(data); 
-    setApiSuccess('Casos generados exitosamente!');
-
-    setFormCase({
+      setCasesData(data);
+      setStatusApi(true);
+      setApiMessage("Casos de prueba generados");
+      setFormCase({
         result: valuesForm.result,
         nameTester: valuesForm.name_tester,
         release: valuesForm.release,
         nameFolder: valuesForm.name_folder,
-        word: wordFile
-});
-  } catch (error) {
-    const message =
-      error.response?.data?.message ||
-      error.message ||
-      'Error al generar los casos';
-    setApiError(message);
-    console.error("Error al generar casos:", message);
-  } finally {
-    setLoading(false);
-  }
-};
+        word: wordFile,
+      });
+    } catch (error) {
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        "Error al generar los casos";
+      setStatusApi(false);
+      setApiMessage(message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  const handleClear = () => {
+    setExcelFile(null);
+    setWordFile(null);
+    setErrors({
+      excelFile: false,
+      wordFile: false,
+      release: false,
+      result: false,
+      name_tester: false,
+    });
+    setValuesForm({
+      release: "",
+      name_tester: "",
+      result: "",
+      name_folder: "",
+      url: "",
+    });
+    setApiMessage("");
+    setStatusApi(false);
 
+    if (excelInputRef.current) excelInputRef.current.value = null;
+    if (wordInputRef.current) wordInputRef.current.value = null;
+
+    setCasesData(null);
+    setFormCase(null);
+  };
+
+  useEffect(() => {
+    if (messageApi) {
+      const timer = setTimeout(() => {
+        setApiMessage("");
+        setStatusApi(false);
+      }, 4000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [messageApi]);
 
   return (
     <>
       <Grid container spacing={2}>
-      
+        {messageApi && (
+          <Alert
+            severity={statusApi ? "success" : "error"}
+            sx={{ mb: 1, width: "100%" }}
+          >
+            {messageApi}
+          </Alert>
+        )}
+
+        <Container
+          sx={{
+            display: "flex",
+            gap: 2,
+            flexDirection: { xs: "column", sm: "row" },
+          }}
+        >
           <input
             type="file"
             hidden
             accept=".doc,.docx"
             ref={wordInputRef}
-            onChange={(e) => handleFileChange(e, setWordFile, 'wordFile')}
+            onChange={(e) => handleFileChange(e, setWordFile, "wordFile")}
           />
-          <FileDropZoneWrapper error={errors.wordFile} onClick={() => wordInputRef.current.click()}>
-            <DescriptionIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
-            <Typography variant="h6" sx={{ mb: 1 }}>Plantilla Word</Typography>
+          <FileDropZoneWrapper
+            error={errors.wordFile}
+            onClick={() => wordInputRef.current.click()}
+          >
+            <Icons.DescriptionIcon
+              sx={{ fontSize: 40, color: "primary.main", mb: 1 }}
+            />
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              Plantilla Word
+            </Typography>
             {wordFile ? (
               <Chip
-                icon={<CheckCircleOutlineIcon />}
+                icon={<Icons.CheckCircleOutlineIcon />}
                 label={wordFile.name}
                 color="success"
                 variant="outlined"
                 onDelete={() => clearInputFile(setWordFile, wordInputRef)}
+                sx={{
+                  maxWidth: 150,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
               />
             ) : (
-              <Typography variant="body2" color="text.secondary">Haz clic para seleccionar</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Haz clic para seleccionar
+              </Typography>
             )}
             {errors.wordFile && (
-              <Typography variant="caption" color="error">Se requiere un archivo</Typography>
+              <Typography variant="caption" color="error">
+                Se requiere un archivo
+              </Typography>
             )}
           </FileDropZoneWrapper>
-       
 
-      
           <input
             type="file"
             hidden
             accept=".xlsx,.xls"
             ref={excelInputRef}
-            onChange={(e) => handleFileChange(e, setExcelFile, 'excelFile')}
+            onChange={(e) => handleFileChange(e, setExcelFile, "excelFile")}
           />
-          <FileDropZoneWrapper error={errors.excelFile} onClick={() => excelInputRef.current.click()}>
-            <UploadFileIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
-            <Typography variant="h6" sx={{ mb: 1 }}>Matriz Excel</Typography>
+          <FileDropZoneWrapper
+            error={errors.excelFile}
+            onClick={() => excelInputRef.current.click()}
+          >
+            <Icons.UploadFileIcon
+              sx={{ fontSize: 40, color: "primary.main", mb: 1 }}
+            />
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              Matriz Excel
+            </Typography>
             {excelFile ? (
               <Chip
-                icon={<CheckCircleOutlineIcon />}
+                icon={<Icons.CheckCircleOutlineIcon />}
                 label={excelFile.name}
                 color="success"
                 variant="outlined"
                 onDelete={() => clearInputFile(setExcelFile, excelInputRef)}
+                sx={{
+                  maxWidth: 150,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
               />
             ) : (
-              <Typography variant="body2" color="text.secondary">Haz clic para seleccionar</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Haz clic para seleccionar
+              </Typography>
             )}
             {errors.excelFile && (
-              <Typography variant="caption" color="error">Se requiere un archivo</Typography>
+              <Typography variant="caption" color="error">
+                Se requiere un archivo
+              </Typography>
             )}
           </FileDropZoneWrapper>
-      
+        </Container>
 
-        
-          <TextField
-            fullWidth
-            label="Release / Versión"
-            value={valuesForm.release}
-            error={errors.release}
-            onChange={(e) =>
-              setValuesForm((prev) => ({ ...prev, release: e.target.value }))
-            }
-          />
-      
+        <TextField
+          fullWidth
+          label="Release / Versión"
+          value={valuesForm.release}
+          error={errors.release}
+          onChange={(e) =>
+            setValuesForm((prev) => ({ ...prev, release: e.target.value }))
+          }
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Icons.ConfirmationNumberIcon />
+              </InputAdornment>
+            ),
+          }}
+          InputLabelProps={{ shrink: true }}
+        />
 
-     
-          <TextField
-            fullWidth
-            label="Nombre del Tester"
-            value={valuesForm.name_tester}
-            error={errors.name_tester}
-            onChange={(e) =>
-              setValuesForm((prev) => ({ ...prev, name_tester: e.target.value }))
-            }
-          />
-    
-          <TextField
-            fullWidth
-            label="Resultado esperado"
-            value={valuesForm.result}
-            onChange={(e) =>
-              setValuesForm((prev) => ({ ...prev, result: e.target.value }))
-            }
-          />
+        <TextField
+          fullWidth
+          label="Nombre del Tester"
+          value={valuesForm.name_tester}
+          error={errors.name_tester}
+          onChange={(e) =>
+            setValuesForm((prev) => ({ ...prev, name_tester: e.target.value }))
+          }
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Icons.PersonIcon />
+              </InputAdornment>
+            ),
+          }}
+          InputLabelProps={{ shrink: true }}
+        />
 
-          <TextField
-            fullWidth
-            label="Nombre de la carpeta"
-            value={valuesForm.name_folder}
-            onChange={(e) =>
-              setValuesForm((prev) => ({ ...prev, name_folder: e.target.value }))
-            }
-          />
-      
-       
-          <TextField
-            fullWidth
-            label="URL del sistema"
-            value={valuesForm.url}
-            onChange={(e) =>
-              setValuesForm((prev) => ({ ...prev, url: e.target.value }))
-            }
-          />
-      
+        <TextField
+          fullWidth
+          label="Resultado esperado"
+          value={valuesForm.result}
+          onChange={(e) =>
+            setValuesForm((prev) => ({ ...prev, result: e.target.value }))
+          }
+          sx={{ color: "text.primary" }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Icons.FactCheckIcon />
+              </InputAdornment>
+            ),
+          }}
+          InputLabelProps={{ shrink: true }}
+        />
 
-    
-      
-          <Collapse in={!!apiError}>
-            <Alert severity="error" sx={{ mb: 2 }}>{apiError}</Alert>
-          </Collapse>
-          <Collapse in={!!apiSuccess}>
-            <Alert severity="success" sx={{ mb: 2 }}>{apiSuccess}</Alert>
-          </Collapse>
-       
+        <TextField
+          fullWidth
+          label="Nombre de la carpeta"
+          value={valuesForm.name_folder}
+          onChange={(e) =>
+            setValuesForm((prev) => ({ ...prev, name_folder: e.target.value }))
+          }
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Icons.FolderIcon />
+              </InputAdornment>
+            ),
+          }}
+          InputLabelProps={{ shrink: true }}
+        />
+
+        <TextField
+          fullWidth
+          label="URL del sistema"
+          value={valuesForm.url}
+          onChange={(e) =>
+            setValuesForm((prev) => ({ ...prev, url: e.target.value }))
+          }
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Icons.LinkIcon />
+              </InputAdornment>
+            ),
+          }}
+          InputLabelProps={{ shrink: true }}
+        />
+
+        <Container sx={{ display: "flex", gap: 2 }}>
           <Button
             variant="contained"
             color="primary"
@@ -258,10 +359,27 @@ const handleSubmit = async () => {
             onClick={handleSubmit}
             disabled={loading}
             startIcon={loading && <CircularProgress size={20} />}
+            sx={{
+              height: 50,
+              fontSize: 18,
+            }}
           >
-            {loading ? 'Generando...' : 'Generar Casos'}
+            {loading ? "Generando..." : "Generar Casos"}
           </Button>
-        
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            onClick={handleClear}
+            disabled={loading}
+            sx={{
+              height: 50,
+              fontSize: 18,
+            }}
+          >
+            Limpiar
+          </Button>
+        </Container>
       </Grid>
     </>
   );

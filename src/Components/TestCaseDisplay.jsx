@@ -1,36 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
-import axios from 'axios';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import TablePagination from '@mui/material/TablePagination';
-import Typography from '@mui/material/Typography';
-import Paper from '@mui/material/Paper';
-import Box from '@mui/material/Box';
-import IconButton from '@mui/material/IconButton';
+import axios from "axios";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import TablePagination from "@mui/material/TablePagination";
+import Typography from "@mui/material/Typography";
+import Paper from "@mui/material/Paper";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import TextField from "@mui/material/TextField";
+import InputAdornment from "@mui/material/InputAdornment";
 
-import ChecklistIcon from '@mui/icons-material/Checklist';
-import FolderIcon from '@mui/icons-material/Folder';
-import TagIcon from '@mui/icons-material/Tag';
-import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
-import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
-import DownloadForOfflineIcon from '@mui/icons-material/DownloadForOffline';
+import Icons from "../utils/icon";
 
 const TestCaseDisplay = ({ casesData, formCaseData }) => {
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [apiSuccess, setApiSuccess] = useState(null);
+  const [searchText, setSearchText] = useState('');
 
   const rowsPerPage = 10;
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
+
+  // Filtrado de casos en tiempo real
+  const filteredCases = casesData?.casos?.filter((testCase) =>
+    testCase.name.toLowerCase().includes(searchText.toLowerCase())
+  ) || [];
 
   useEffect(() => {
     if (casesData?.casos) {
@@ -50,19 +54,23 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
 
     try {
       const formData = new FormData();
-      formData.append('word', formCaseData.word);
-      formData.append('realises', formCaseData.release);
-      formData.append('nameTester', formCaseData.nameTester || formCaseData.name_tester);
-      formData.append('result', formCaseData.result);
-      formData.append('nameFolder', formCaseData.name_folder || formCaseData.nameFolder);
-      formData.append('cases', JSON.stringify(casesData.casos));
+      formData.append("word", formCaseData.word);
+      formData.append("realises", formCaseData.release);
+      formData.append(
+        "nameTester",
+        formCaseData.nameTester || formCaseData.name_tester
+      );
+      formData.append("result", formCaseData.result);
+      formData.append(
+        "nameFolder",
+        formCaseData.name_folder || formCaseData.nameFolder
+      );
+      formData.append("cases", JSON.stringify(casesData.casos));
 
-      const response = await axios.post(
-        'http://localhost:3000/test_cases/generated/generatedDocs',
+      await axios.post(
+        "http://localhost:3000/test_cases/generated/generatedDocs",
         formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        }
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
 
       setApiSuccess("Documentos generados correctamente en el escritorio.");
@@ -86,27 +94,32 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
 
     try {
       const formData = new FormData();
-      formData.append('word', formCaseData.word);
-      formData.append('realises', formCaseData.release);
-      formData.append('nameTester', formCaseData.nameTester || formCaseData.name_tester);
-      formData.append('result', formCaseData.result);
-      formData.append('cases', JSON.stringify([singleCase]));
+      formData.append("word", formCaseData.word);
+      formData.append("realises", formCaseData.release);
+      formData.append(
+        "nameTester",
+        formCaseData.nameTester || formCaseData.name_tester
+      );
+      formData.append("result", formCaseData.result);
+      formData.append("cases", JSON.stringify([singleCase]));
 
       const response = await axios.post(
-        'http://localhost:3000/test_cases/generated/generatedOnlyDocs',
+        "http://localhost:3000/test_cases/generated/generatedOnlyDocs",
         formData,
         {
-          responseType: 'blob',
-          headers: { 'Content-Type': 'multipart/form-data' }
+          responseType: "blob",
+          headers: { "Content-Type": "multipart/form-data" },
         }
       );
 
-      const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      });
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       const fileName = `${singleCase.name.replace(/[\\/:*?"<>|]/g, "_")}.docx`;
       link.href = url;
-      link.setAttribute('download', fileName);
+      link.setAttribute("download", fileName);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -120,9 +133,9 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
 
   if (!casesData || !casesData.casos || casesData.casos.length === 0) {
     return (
-      <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
-        <ChecklistIcon sx={{ fontSize: 50, color: 'grey.400', mb: 2 }} />
-        <Typography variant="h6" color="text.secondary">
+      <Paper elevation={3} sx={{ p: 6, textAlign: "center", borderRadius: 3 }}>
+        <Icons.ChecklistIcon sx={{ fontSize: 60, color: "grey.400", mb: 2 }} />
+        <Typography variant="h6" color="text.secondary" gutterBottom>
           Los resultados aparecerán aquí
         </Typography>
         <Typography variant="body2" color="text.disabled">
@@ -133,32 +146,62 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
   }
 
   return (
-    <Paper elevation={3} sx={{ p: 4 }}>
-      <Box mb={3}>
-        <Typography variant="h6" color="primary" display="flex" alignItems="center" gutterBottom>
-          <ChatBubbleOutlineIcon sx={{ mr: 1 }} />
-          {casesData.message}
-        </Typography>
-        <Box display="flex" gap={3} color="text.secondary" alignItems="center">
-          <Box display="flex" alignItems="center">
-            <TagIcon sx={{ fontSize: 18, mr: 1 }} />
-            {casesData.cantidad}
-          </Box>
-          <Box display="flex" alignItems="center">
-            <FolderIcon sx={{ fontSize: 18, mr: 1 }} />
-            {casesData.carpeta}
-          </Box>
-          <Box sx={{ marginLeft: 'auto' }}>
-            <IconButton
-              aria-label="generate-docs"
-              color="primary"
-              size="large"
-              onClick={handleDownloadALLDocs}
-              disabled={loading}
-            >
-              <CloudDownloadIcon />
-            </IconButton>
-          </Box>
+    <Paper elevation={3} sx={{ p: 4, borderRadius: 3, bgcolor: "#fafafa" }}>
+      {/* Encabezado con cantidad, carpeta y buscador + botón */}
+      <Box mb={3} display="flex" alignItems="center" gap={3} flexWrap="wrap">
+        <Box
+          display="flex"
+          alignItems="center"
+          gap={0.5}
+          color="text.secondary"
+        >
+          <Icons.TagIcon fontSize="small" />
+          <Typography>{casesData.cantidad}</Typography>
+        </Box>
+        <Box
+          display="flex"
+          alignItems="center"
+          gap={0.5}
+          color="text.secondary"
+        >
+          <Icons.FolderIcon fontSize="small" />
+          <Typography>{casesData.carpeta}</Typography>
+        </Box>
+
+        {/* Buscador y botón a la derecha */}
+        <Box
+          display="flex"
+          marginLeft="auto"
+          gap={2}
+          alignItems="center"
+          justifyContent="flex-end"
+        >
+          <TextField
+           
+            size="small"
+            sx={{ minWidth: 200 }}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Icons.SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+            InputLabelProps={{ shrink: true }}
+          />
+
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<Icons.CloudDownloadIcon />}
+            onClick={handleDownloadALLDocs}
+            disabled={loading}
+            size="medium"
+          >
+            Descargar todo
+          </Button>
         </Box>
       </Box>
 
@@ -174,37 +217,66 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
         </Typography>
       )}
 
-      <TableContainer>
-        <Table>
-          <TableHead>
+      {/* Tabla */}
+      <TableContainer
+        sx={{
+          borderRadius: 2,
+          border: "1px solid #ddd",
+          boxShadow: "0 2px 6px rgb(0 0 0 / 0.05)",
+          bgcolor: "white",
+          maxHeight: 440,
+        }}
+      >
+        <Table stickyHeader>
+          <TableHead sx={{ bgcolor: "#f5f5f5" }}>
             <TableRow>
-              <TableCell>Nombre del Caso</TableCell>
-              <TableCell>Número de Pasos</TableCell>
-              <TableCell>Resultado</TableCell>
-              <TableCell>Nombre del tester</TableCell>
-              <TableCell>Release</TableCell>
-              <TableCell>Acciones</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Nombre del Caso</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }} align="center">
+                Número de Pasos
+              </TableCell>
+              <TableCell sx={{ fontWeight: "bold" }} align="center">
+                Resultado
+              </TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>
+                Nombre del tester
+              </TableCell>
+              <TableCell sx={{ fontWeight: "bold" }} align="center">
+                Release
+              </TableCell>
+              <TableCell sx={{ fontWeight: "bold" }} align="center">
+                Acciones
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {casesData.casos
+            {filteredCases
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((testCase, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>{testCase?.name || '—'}</TableCell>
-                  <TableCell>{testCase?.steps.length || '—'}</TableCell>
-                  <TableCell>{formCaseData?.result || '—'}</TableCell>
-                  <TableCell>{formCaseData?.nameTester || formCaseData?.name_tester || '—'}</TableCell>
-                  <TableCell>{formCaseData?.release || formCaseData?.realises || '—'}</TableCell>
+                <TableRow key={idx} hover sx={{ cursor: "pointer" }}>
+                  <TableCell>{testCase?.name || "—"}</TableCell>
+                  <TableCell align="center">
+                    {testCase?.steps?.length || "—"}
+                  </TableCell>
+                  <TableCell align="center">
+                    {formCaseData?.result || "—"}
+                  </TableCell>
                   <TableCell>
+                    {formCaseData?.nameTester ||
+                      formCaseData?.name_tester ||
+                      "—"}
+                  </TableCell>
+                  <TableCell align="center">
+                    {formCaseData?.release || formCaseData?.realises || "—"}
+                  </TableCell>
+                  <TableCell align="center">
                     <IconButton
                       aria-label="download-single-doc"
                       color="primary"
-                      size="large"
+                      size="medium"
                       onClick={() => handleDownloadOnlyDoc(testCase)}
                       disabled={loading}
                     >
-                      <DownloadForOfflineIcon />
+                      <Icons.DownloadForOfflineIcon />
                     </IconButton>
                   </TableCell>
                 </TableRow>
@@ -215,11 +287,12 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
 
       <TablePagination
         component="div"
-        count={casesData.casos.length}
+        count={filteredCases.length}
         page={page}
         onPageChange={handleChangePage}
         rowsPerPage={rowsPerPage}
         rowsPerPageOptions={[10]}
+        sx={{ mt: 2 }}
       />
     </Paper>
   );
