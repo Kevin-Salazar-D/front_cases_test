@@ -47,6 +47,7 @@ const Home = () => {
             height: isMobile ? '100%' : 'auto',
             width: '100%',
             overflowY: isMobile ? 'visible' : 'auto',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)'
           }}
         >
           <Typography
@@ -63,8 +64,18 @@ const Home = () => {
           sx={{
             flexGrow: 1,
             minWidth: 0,
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)',
+            background: "white"
+
           }}
         >
+       <Typography
+            variant="h6"
+            sx={{ ml: 2, mb: 1, fontSize: 20, fontWeight: 600, color: 'primary.main' }}
+          >
+            Casos de prueba generados
+          </Typography>
+        
           <TestCaseDisplay casesData={casesData} formCaseData={formCase} />
         </Box>
       </Box>

@@ -61,12 +61,12 @@ const FormCases = ({ setCasesData, setFormCase }) => {
 
   const handleSubmit = async () => {
     const newErrors = {
-      excelFile: !excelFile,
-      wordFile: !wordFile,
-      release: valuesForm.release.trim() === "",
-      name_tester: valuesForm.name_tester.trim() === "",
-    };
+    excelFile: !excelFile,
+    wordFile: !wordFile,
+    release: valuesForm.release.trim() === "",
+    name_tester: valuesForm.name_tester.trim() === "",
 
+  };
     setErrors(newErrors);
     if (Object.values(newErrors).some(Boolean)) return;
 
@@ -78,7 +78,7 @@ const FormCases = ({ setCasesData, setFormCase }) => {
       formData.append("word", wordFile);
       formData.append("realises", valuesForm.release);
       formData.append("nameTester", valuesForm.name_tester);
-      formData.append("result", valuesForm.result);
+      formData.append("result", valuesForm.result || "");
       formData.append("nameFolder", valuesForm.name_folder);
 
       const response = await axios.post(
