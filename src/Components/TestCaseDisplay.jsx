@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-
+import { useState, useEffect } from "react";
 import axios from "axios";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -17,31 +16,48 @@ import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
 
 import Icons from "../utils/icon";
+import EditFormCase from "./EditFormCasesTest";
 
 const TestCaseDisplay = ({ casesData, formCaseData }) => {
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [apiSuccess, setApiSuccess] = useState(null);
-  const [searchText, setSearchText] = useState('');
+  const [searchText, setSearchText] = useState("");
+  const [openFormCases, setOpenFormCases] = useState(false);
+  const [selectedCase, setSelectedCase] = useState(null);
+  const [cases, setCases] = useState(casesData?.casos || []);
 
   const rowsPerPage = 10;
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  // Filtrado de casos en tiempo real
-  const filteredCases = casesData?.casos?.filter((testCase) =>
-    testCase.name.toLowerCase().includes(searchText.toLowerCase())
-  ) || [];
-
   useEffect(() => {
-    if (casesData?.casos) {
-      console.log("Todos los casos:", casesData.casos);
-    }
+    if (casesData?.casos) setCases(casesData.casos);
   }, [casesData]);
 
+  const handleChangePage = (event, newPage) => setPage(newPage);
+
+  const filteredCases =
+    cases?.filter((testCase) =>
+      testCase.name.toLowerCase().includes(searchText.toLowerCase())
+    ) || [];
+
+  const handleOpenFormCase = (testCase) => {
+    setSelectedCase(testCase);
+    setOpenFormCases(true);
+  };
+
+  const handleCloseFormCase = () => {
+    setSelectedCase(null);
+    setOpenFormCases(false);
+  };
+
+  const handleUpdateCase = (updatedCase) => {
+    setCases((prev) =>
+      prev.map((c) => (c.name === updatedCase.name ? updatedCase : c))
+    );
+  };
+
+  // --- Función para descargar todos los documentos (Word + Excel)
   const handleDownloadALLDocs = async () => {
     if (!formCaseData?.word) {
       setApiError("No hay plantilla Word seleccionada.");
@@ -82,9 +98,10 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
     }
   };
 
+  // --- Descargar documento individual (Word o Excel)
   const handleDownloadOnlyDoc = async (singleCase) => {
-    if (!formCaseData?.word) {
-      setApiError("No hay plantilla Word seleccionada.");
+    if (!formCaseData?.word && !formCaseData?.excel) {
+      setApiError("No hay plantilla Word ni Excel seleccionada.");
       return;
     }
 
@@ -94,7 +111,8 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
 
     try {
       const formData = new FormData();
-      formData.append("word", formCaseData.word);
+      if (formCaseData.word) formData.append("word", formCaseData.word);
+      if (formCaseData.excel) formData.append("excel", formCaseData.excel);
       formData.append("realises", formCaseData.release);
       formData.append(
         "nameTester",
@@ -112,17 +130,27 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
         }
       );
 
+      const extension = formCaseData.word ? ".docx" : ".xlsx";
       const blob = new Blob([response.data], {
-        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        type: formCaseData.word
+          ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
+
       const url = window.URL.createObjectURL(blob);
+      const fileName = `${singleCase.name.replace(
+        /[\\/:*?"<>|]/g,
+        "_"
+      )}${extension}`;
+
       const link = document.createElement("a");
-      const fileName = `${singleCase.name.replace(/[\\/:*?"<>|]/g, "_")}.docx`;
       link.href = url;
       link.setAttribute("download", fileName);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+
+      setApiSuccess("Documento individual descargado correctamente.");
     } catch (error) {
       setApiError("Error al descargar el documento individual.");
       console.error(error);
@@ -131,7 +159,8 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
     }
   };
 
-  if (!casesData || !casesData.casos || casesData.casos.length === 0) {
+  // --- Renderizado
+  if (!cases || cases.length === 0) {
     return (
       <Paper elevation={3} sx={{ p: 6, textAlign: "center", borderRadius: 3 }}>
         <Icons.ChecklistIcon sx={{ fontSize: 60, color: "grey.400", mb: 2 }} />
@@ -147,7 +176,6 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
 
   return (
     <Paper elevation={3} sx={{ p: 4, borderRadius: 3, bgcolor: "#fafafa" }}>
-      {/* Encabezado con cantidad, carpeta y buscador + botón */}
       <Box mb={3} display="flex" alignItems="center" gap={3} flexWrap="wrap">
         <Box
           display="flex"
@@ -167,8 +195,6 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
           <Icons.FolderIcon fontSize="small" />
           <Typography>{casesData.carpeta}</Typography>
         </Box>
-
-        {/* Buscador y botón a la derecha */}
         <Box
           display="flex"
           marginLeft="auto"
@@ -177,7 +203,6 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
           justifyContent="flex-end"
         >
           <TextField
-           
             size="small"
             sx={{ minWidth: 200 }}
             value={searchText}
@@ -191,7 +216,6 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
             }}
             InputLabelProps={{ shrink: true }}
           />
-
           <Button
             variant="contained"
             color="primary"
@@ -210,14 +234,12 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
           {apiError}
         </Typography>
       )}
-
       {apiSuccess && (
         <Typography color="success.main" sx={{ mb: 2 }}>
           {apiSuccess}
         </Typography>
       )}
 
-      {/* Tabla */}
       <TableContainer
         sx={{
           borderRadius: 2,
@@ -260,14 +282,8 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
                   <TableCell align="center">
                     {formCaseData?.result || "—"}
                   </TableCell>
-                  <TableCell>
-                    {formCaseData?.nameTester ||
-                      formCaseData?.name_tester ||
-                      "—"}
-                  </TableCell>
-                  <TableCell align="center">
-                    {formCaseData?.release || formCaseData?.realises || "—"}
-                  </TableCell>
+                  <TableCell>{formCaseData?.nameTester || "—"}</TableCell>
+                  <TableCell align="center">{formCaseData?.release}</TableCell>
                   <TableCell align="center">
                     <IconButton
                       aria-label="download-single-doc"
@@ -277,6 +293,15 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
                       disabled={loading}
                     >
                       <Icons.DownloadForOfflineIcon />
+                    </IconButton>
+                    <IconButton
+                      aria-label="edit-cases-test"
+                      color="primary"
+                      size="medium"
+                      onClick={() => handleOpenFormCase(testCase)}
+                      disabled={loading}
+                    >
+                      <Icons.BorderColorRoundedIcon />
                     </IconButton>
                   </TableCell>
                 </TableRow>
@@ -293,6 +318,15 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
         rowsPerPage={rowsPerPage}
         rowsPerPageOptions={[10]}
         sx={{ mt: 2 }}
+      />
+
+      <EditFormCase
+        open={openFormCases}
+        handleClose={handleCloseFormCase}
+        testCase={selectedCase}
+        nameTester={formCaseData?.nameTester}
+        realises={formCaseData?.release}
+        handleUpdateCase={handleUpdateCase}
       />
     </Paper>
   );

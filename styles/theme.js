@@ -2,24 +2,29 @@ import { createTheme } from "@mui/material";
 
 const theme = createTheme({
   palette: {
-    background: { 
-      default: '#f9fafb',
-    }, 
+    background: {
+      default: "#f9fafb",
+    },
     primary: {
-      main: '#3B82F6',
+      main: "#3B82F6",
+    },
+    orange: {
+      main: "#FF9800",
+      light: "#FFB74D",
+      dark: "#F57C00",
     },
     text: {
-      primary: '#000000',
-      secondary: '#4B5563',
+      primary: "#000000",
+      secondary: "#4B5563",
     },
   },
   typography: {
-    fontFamily: 'Poppins, sans-serif',
+    fontFamily: "Poppins, sans-serif",
     body1: {
-      color: '#2b2d31ff',
+      color: "#2b2d31ff",
     },
     h4: {
-      color: '#4B5563',
+      color: "#4B5563",
       fontWeight: 800,
     },
   },
@@ -27,9 +32,9 @@ const theme = createTheme({
     MuiInputLabel: {
       styleOverrides: {
         root: {
-          color: '#606162ff',
-          '&.Mui-focused': {
-            color: '#1e4a87ff',
+          color: "#606162ff",
+          "&.Mui-focused": {
+            color: "#1e4a87ff",
           },
         },
       },
@@ -37,7 +42,7 @@ const theme = createTheme({
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          borderRadius: '20px', // Aquí le das el borde redondeado al input
+          borderRadius: "20px", // Aquí le das el borde redondeado al input
         },
       },
     },
@@ -50,7 +55,7 @@ const theme = createTheme({
           background: "linear-gradient(90deg, #007BFF 0%, #3399FF 100%)",
           boxShadow: "0 4px 12px rgba(0, 123, 255, 0.4)",
           transition: "all 0.3s ease-in-out",
-          '&:hover': {
+          "&:hover": {
             background: "linear-gradient(90deg, #0056b3 0%, #007BFF 100%)",
             boxShadow: "0 6px 16px rgba(0, 123, 255, 0.5)",
           },

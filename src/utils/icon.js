@@ -11,6 +11,14 @@ import TagIcon from '@mui/icons-material/Tag';
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import DownloadForOfflineIcon from '@mui/icons-material/DownloadForOffline';
 import SearchIcon from '@mui/icons-material/Search';
+import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
+import BiotechIcon from '@mui/icons-material/Biotech';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+import PsychologyIcon from '@mui/icons-material/Psychology';
+import UpgradeIcon from '@mui/icons-material/Upgrade';
+import CloseIcon from '@mui/icons-material/Close';
+import SaveAsIcon from '@mui/icons-material/SaveAs';
 
 
 const Icons = {
@@ -26,7 +34,15 @@ const Icons = {
   TagIcon,
   CloudDownloadIcon,
   DownloadForOfflineIcon,
-  SearchIcon
+  SearchIcon,
+  BorderColorRoundedIcon,
+  BiotechIcon,
+  AddIcon,
+  DeleteIcon,
+  PsychologyIcon,
+  UpgradeIcon,
+  CloseIcon,
+  SaveAsIcon
 };
 
 export default Icons;
