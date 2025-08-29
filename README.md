@@ -1,8 +1,25 @@
-# Aplicacion WEB Automatizacion cases test
+# Aplicación WEB de Automatización de Casos de Prueba
 
-Es la parte del front de la apliacion para la automatizacion en el area de QA
- VERSION 1-4-0
+Esta es la parte del **frontend** de la aplicación para la automatización en el área de QA.  
 
- GENERACION DE CASOS DE PRUEBA
- TABLA PARA LE PREVIZUALIZACION DE LOS CASOS
- DESCARGAR UNO O TODOS LOS CASOS DE PRUEBAS GENERADOS
+## Versiones
+
+### v2.5.0 - 28/08/2025
+**Novedades:**
+- Modal para la previsualizacion de los casos de prueba.
+- Editar, Borrar y Agregar Casos de prueba.
+- Mensajes de éxito/error visibles en el frontend.
+- Correcciones de errores en la generación de documentos.
+- Ajustes de estilos y mejoras en la tabla de visualización de casos.
+
+### v1.4.0
+**Novedades:**
+- Generación de casos de prueba.
+- Tabla para previsualización de los casos.
+- Opción de descargar uno o todos los casos de prueba generados.
+
+## Funcionalidades principales
+- Subir plantilla Word para generar documentos de prueba.
+- Mostrar casos de prueba en tabla con paginación y filtrado.
+- Descargar documentos individuales o todos en un ZIP.
+- Modal para editar detalles de cada caso de prueba.
