@@ -3,7 +3,7 @@
 Esta es la parte del **frontend** de la aplicación para la automatización en el área de QA.  
 
 ## Versiones
-### v2.6.2 --ESTABLE 28/08/2025 
+### v2.6.2 --ESTABLE 07/09/2025 
 **Novedades:**
 - Corrección del bug del botón "Limpiar"
 - Mejoras en el diseño y manejo del desbordamiento de la tabla de casos.
