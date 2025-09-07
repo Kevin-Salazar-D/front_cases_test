@@ -10,16 +10,24 @@ import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import Paper from "@mui/material/Paper";
-import Icons from "../utils/icon";
 import { useTheme } from "@mui/material/styles";
 
-const EditFormCase = ({
+//importaciones de utils
+import Icons from "../utils/icon";
+import apiClientAxios from "../utils/apiClient";
+import urlApi from "../utils/urlApi";
+
+
+
+const EditCasesTest = ({
   open,
   handleClose,
   testCase,
   nameTester,
   realises,
-  handleUpdateCase 
+  result,
+  handleUpdateCase,
+  wordFile
 }) => {
   const theme = useTheme();
 
@@ -37,12 +45,17 @@ const EditFormCase = ({
     setSteps(updatedSteps);
   };
 
-  const handleAddStep = () => {
-    setSteps([
-      ...steps,
-      { step: steps.length + 1, description: "", result: "" },
-    ]);
-  };
+const handleAddStep = () => {
+  setSteps([
+    ...steps,
+    {
+      step: `Step ${steps.length + 1}`, 
+      description: "",
+      result: "",
+    },
+  ]);
+};
+
 
   const handleRemoveStep = (index) => {
     const updatedSteps = steps.filter((_, idx) => idx !== index);
@@ -51,9 +64,57 @@ const EditFormCase = ({
 
   const handleSave = () => {
     const updatedCase = { ...testCase, steps };
+  
     handleUpdateCase?.(updatedCase); 
     handleClose();
   };
+
+const handleDownloadSave = async () => {
+  if (!wordFile) {
+    console.error("Debes enviar un archivo Word.");
+    return;
+  }
+
+  const updatedCase = { ...testCase, steps };
+  handleUpdateCase?.(updatedCase);
+
+  try {
+    const formData = new FormData();
+    formData.append("word", wordFile);
+    formData.append("realises", realises || "generico");
+    formData.append("nameTester", nameTester || "generico");
+    formData.append("result", result || "");
+    formData.append("cases", JSON.stringify([updatedCase]));
+
+    const response = await apiClientAxios(formData, urlApi.generateOnlyDoc, "POST", true);
+
+    const extension = ".docx";
+    const type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  
+
+    const blob = new Blob([response], { type });
+
+    const url = window.URL.createObjectURL(blob);
+    const fileName = `${testCase.name.replace(/[\\/:*?"<>|]/g, "_")}${extension}`;
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+  } catch (error) {
+    console.error("Error al descargar el archivo:", error);
+  } finally {
+    handleClose();
+  }
+};
+
+
+
+  
 
   if (!testCase) return null;
 
@@ -128,7 +189,7 @@ const EditFormCase = ({
             >
               <Box display="flex" justifyContent="space-between" alignItems="center">
                 <Typography variant="subtitle2" fontWeight="bold">
-                  Paso {idx + 1}
+                  Step {idx + 1}
                 </Typography>
                 <IconButton color="error" onClick={() => handleRemoveStep(idx)}>
                   <Icons.DeleteIcon />
@@ -176,9 +237,17 @@ const EditFormCase = ({
           <Icons.SaveAsIcon sx={{ marginRight: 1 }} />
           Guardar cambios
         </Button>
+         <Button
+          variant="contained"
+          sx={{ borderRadius: "16px", bgcolor: "primary.main", "&:hover": { bgcolor: "primary.dark" } }}
+          onClick={handleDownloadSave}
+        >
+          <Icons.DownloadForOfflineIcon sx={{ marginRight: 1 }} />
+          Guardar y descargar
+        </Button>
       </DialogActions>
     </Dialog>
   );
 };
 
-export default EditFormCase;
+export default EditCasesTest;

@@ -19,7 +19,8 @@ import PsychologyIcon from '@mui/icons-material/Psychology';
 import UpgradeIcon from '@mui/icons-material/Upgrade';
 import CloseIcon from '@mui/icons-material/Close';
 import SaveAsIcon from '@mui/icons-material/SaveAs';
-
+import ClearAllIcon from '@mui/icons-material/ClearAll';
+import CasesIcon from '@mui/icons-material/Cases';
 
 const Icons = {
   UploadFileIcon,
@@ -42,7 +43,10 @@ const Icons = {
   PsychologyIcon,
   UpgradeIcon,
   CloseIcon,
-  SaveAsIcon
+  SaveAsIcon,
+  ClearAllIcon,
+  CasesIcon,
+  ClearAllIcon
 };
 
 export default Icons;

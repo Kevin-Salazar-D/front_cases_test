@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -14,11 +13,17 @@ import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
+import { useTheme } from "@mui/material/styles";
 
+//importaciones utils
 import Icons from "../utils/icon";
-import EditFormCase from "./EditFormCasesTest";
+import urlApi from "../utils/urlApi";
+import apiClientAxios from "../utils/apiClient";
+//componentes personalizados
+import EditCasesTest from "./EditCasesTest";
 
 const TestCaseDisplay = ({ casesData, formCaseData }) => {
+  const theme = useTheme();
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
@@ -31,8 +36,13 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
   const rowsPerPage = 10;
 
   useEffect(() => {
-    if (casesData?.casos) setCases(casesData.casos);
-  }, [casesData]);
+    if (casesData?.casos) {
+      setCases(casesData.casos);
+    } else {
+      setCases([]);
+    }
+    setPage(0);
+  }, [casesData, searchText]);
 
   const handleChangePage = (event, newPage) => setPage(newPage);
 
@@ -83,13 +93,9 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
       );
       formData.append("cases", JSON.stringify(casesData.casos));
 
-      await axios.post(
-        "http://localhost:3000/test_cases/generated/generatedDocs",
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
-
+      await apiClientAxios(formData, urlApi.generatedDocs, "POST");
       setApiSuccess("Documentos generados correctamente en el escritorio.");
+
     } catch (error) {
       setApiError("Error al generar los documentos. Revisa la consola.");
       console.error(error);
@@ -120,15 +126,9 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
       );
       formData.append("result", formCaseData.result);
       formData.append("cases", JSON.stringify([singleCase]));
-
-      const response = await axios.post(
-        "http://localhost:3000/test_cases/generated/generatedOnlyDocs",
-        formData,
-        {
-          responseType: "blob",
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      
+      const response = await apiClientAxios(formData, urlApi.generateOnlyDoc, "POST", true);
+      console.log(formData);
 
       const extension = formCaseData.word ? ".docx" : ".xlsx";
       const blob = new Blob([response.data], {
@@ -183,8 +183,11 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
           gap={0.5}
           color="text.secondary"
         >
-          <Icons.TagIcon fontSize="small" />
-          <Typography>{casesData.cantidad}</Typography>
+          <Icons.TagIcon
+            fontSize="small"
+            sx={{ color: theme.palette.red.main }}
+          />
+          <Typography> Numero de casos: {casesData?.cantidad || 0}</Typography>
         </Box>
         <Box
           display="flex"
@@ -192,8 +195,11 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
           gap={0.5}
           color="text.secondary"
         >
-          <Icons.FolderIcon fontSize="small" />
-          <Typography>{casesData.carpeta}</Typography>
+          <Icons.FolderIcon
+            fontSize="small"
+            sx={{ color: theme.palette.orange.main }}
+          />
+          <Typography>{formCaseData?.nameFolder || ""}</Typography>
         </Box>
         <Box
           display="flex"
@@ -274,7 +280,12 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
             {filteredCases
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((testCase, idx) => (
-                <TableRow key={idx} hover sx={{ cursor: "pointer" }}>
+                <TableRow
+                  key={idx}
+                  hover
+                  sx={{ cursor: "pointer" }}
+               
+                >
                   <TableCell>{testCase?.name || "—"}</TableCell>
                   <TableCell align="center">
                     {testCase?.steps?.length || "—"}
@@ -320,12 +331,14 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
         sx={{ mt: 2 }}
       />
 
-      <EditFormCase
+      <EditCasesTest
         open={openFormCases}
         handleClose={handleCloseFormCase}
         testCase={selectedCase}
         nameTester={formCaseData?.nameTester}
         realises={formCaseData?.release}
+        result={formCaseData?.result}
+        wordFile={formCaseData?.word}
         handleUpdateCase={handleUpdateCase}
       />
     </Paper>

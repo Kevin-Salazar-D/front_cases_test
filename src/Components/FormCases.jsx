@@ -8,14 +8,19 @@ import Typography from "@mui/material/Typography";
 import Alert from "@mui/material/Alert";
 import InputAdornment from "@mui/material/InputAdornment";
 import CircularProgress from "@mui/material/CircularProgress";
-
-//iconos 
-import Icons from "../utils/icon";
-
-import FileDropZoneWrapper from "./FileDropZoneWrapper";
 import Chip from "@mui/material/Chip";
-import axios from "axios";
 import { Container } from "@mui/material";
+
+//utils 
+import Icons from "../utils/icon";
+import urlApi from "../utils/urlApi";
+import apiClientAxios from "../utils/apiClient";
+
+//componentes personlizados
+import FileDropZoneWrapper from "./FileDropZoneWrapper";
+
+
+
 
 const FormCases = ({ setCasesData, setFormCase }) => {
   const [excelFile, setExcelFile] = useState(null);
@@ -61,12 +66,11 @@ const FormCases = ({ setCasesData, setFormCase }) => {
 
   const handleSubmit = async () => {
     const newErrors = {
-    excelFile: !excelFile,
-    wordFile: !wordFile,
-    release: valuesForm.release.trim() === "",
-    name_tester: valuesForm.name_tester.trim() === "",
-
-  };
+      excelFile: !excelFile,
+      wordFile: !wordFile,
+      release: valuesForm.release.trim() === "",
+      name_tester: valuesForm.name_tester.trim() === "",
+    };
     setErrors(newErrors);
     if (Object.values(newErrors).some(Boolean)) return;
 
@@ -81,17 +85,8 @@ const FormCases = ({ setCasesData, setFormCase }) => {
       formData.append("result", valuesForm.result || "");
       formData.append("nameFolder", valuesForm.name_folder);
 
-      const response = await axios.post(
-        "http://localhost:3000/test_cases/generated/generatedTest",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      const data = response.data;
+      const response = await apiClientAxios(formData, urlApi.generatedTest, "POST");
+      const data = response; 
 
       if (!data.casos || !Array.isArray(data.casos)) {
         throw new Error(data.message || "Respuesta inesperada del servidor");
@@ -142,7 +137,7 @@ const FormCases = ({ setCasesData, setFormCase }) => {
     if (excelInputRef.current) excelInputRef.current.value = null;
     if (wordInputRef.current) wordInputRef.current.value = null;
 
-    setCasesData(null);
+    setCasesData([]);
     setFormCase(null);
   };
 
@@ -186,6 +181,13 @@ const FormCases = ({ setCasesData, setFormCase }) => {
           <FileDropZoneWrapper
             error={errors.wordFile}
             onClick={() => wordInputRef.current.click()}
+            onFilesSelected={(files) => {
+              const file = files[0];
+              if (file) {
+                setWordFile(file);
+                setErrors((prev) => ({ ...prev, wordFile: false }));
+              }
+            }}
           >
             <Icons.DescriptionIcon
               sx={{ fontSize: 40, color: "primary.main", mb: 1 }}
@@ -209,7 +211,7 @@ const FormCases = ({ setCasesData, setFormCase }) => {
               />
             ) : (
               <Typography variant="body2" color="text.secondary">
-                Haz clic para seleccionar
+                Haz clic o arrastra el archivo aquí
               </Typography>
             )}
             {errors.wordFile && (
@@ -229,6 +231,13 @@ const FormCases = ({ setCasesData, setFormCase }) => {
           <FileDropZoneWrapper
             error={errors.excelFile}
             onClick={() => excelInputRef.current.click()}
+            onFilesSelected={(files) => {
+              const file = files[0];
+              if (file) {
+                setExcelFile(file);
+                setErrors((prev) => ({ ...prev, excelFile: false }));
+              }
+            }}
           >
             <Icons.UploadFileIcon
               sx={{ fontSize: 40, color: "primary.main", mb: 1 }}
@@ -252,7 +261,7 @@ const FormCases = ({ setCasesData, setFormCase }) => {
               />
             ) : (
               <Typography variant="body2" color="text.secondary">
-                Haz clic para seleccionar
+                Haz clic o arrastra el archivo aquí
               </Typography>
             )}
             {errors.excelFile && (
@@ -364,6 +373,7 @@ const FormCases = ({ setCasesData, setFormCase }) => {
               fontSize: 18,
             }}
           >
+            <Icons.CasesIcon sx={{ marginRight: 1 }} />
             {loading ? "Generando..." : "Generar Casos"}
           </Button>
           <Button
@@ -377,7 +387,7 @@ const FormCases = ({ setCasesData, setFormCase }) => {
               fontSize: 18,
             }}
           >
-            Limpiar
+            <Icons.ClearAllIcon sx={{ marginRight: 1 }} /> Limpiar
           </Button>
         </Container>
       </Grid>
