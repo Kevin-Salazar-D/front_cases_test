@@ -62,8 +62,8 @@ const Home = () => {
         {/* Contenedor de resultados */}
         <Box
           sx={{
-            flexGrow: 1,
-            minWidth: 0,
+            flexGrow: 5,
+            width: 500,
             boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)',
             background: "white"
 
