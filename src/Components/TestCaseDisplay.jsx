@@ -131,7 +131,7 @@ const TestCaseDisplay = ({ casesData, formCaseData }) => {
       console.log(formData);
 
       const extension = formCaseData.word ? ".docx" : ".xlsx";
-      const blob = new Blob([response.data], {
+      const blob = new Blob([response], {
         type: formCaseData.word
           ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
           : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
